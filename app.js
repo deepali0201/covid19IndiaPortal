@@ -51,10 +51,9 @@ const convertDistrictDbObjectToResponseObject = dbObject => {
   }
 }
 
-function authenticationToken(request, response, next) {
+const authenticateToken = (request, response, next) => {
   let jwtToken
-
-  const authHeader = request.body['authorization']
+  const authHeader = request.headers['authorization']
   if (authHeader !== undefined) {
     jwtToken = authHeader.split(' ')[1]
   }
@@ -62,7 +61,7 @@ function authenticationToken(request, response, next) {
     response.status(401)
     response.send('Invalid JWT Token')
   } else {
-    jwt.verify(jwtToken, 'MY_SECRET_KEY', async (error, payload) => {
+    jwt.verify(jwtToken, 'MY_SECRET_TOKEN', async (error, payload) => {
       if (error) {
         response.status(401)
         response.send('Invalid JWT Token')
@@ -73,6 +72,28 @@ function authenticationToken(request, response, next) {
     })
   }
 }
+// function authenticationToken(request, response, next) {
+//   let jwtToken
+
+//   const authHeader = request.headers['authorization']
+//   if (authHeader !== undefined) {
+//     jwtToken = authHeader.split('')[1]
+//   }
+//   if (jwtToken === undefined) {
+//     response.status(401)
+//     response.send('Invalid JWT Token')
+//   } else {
+//     jwt.verify(jwtToken, 'MY_SECRET_KEY', async (error, payload) => {
+//       if (error) {
+//         response.status(401)
+//         response.send('Invalid JWT Token')
+//       } else {
+//         request.username = payload
+//         next()
+//       }
+//     })
+//   }
+// }
 
 //API 1
 app.post('/login', async (request, response) => {
@@ -103,7 +124,7 @@ app.post('/login', async (request, response) => {
 
 //API 2
 
-app.get('/states/', authenticationToken, async (request, response) => {
+app.get('/states/', authenticateToken, async (request, response) => {
   const getStatesQuery = `
     SELECT
       *
@@ -118,7 +139,7 @@ app.get('/states/', authenticationToken, async (request, response) => {
 })
 
 //API 3
-app.get('/states/:stateId/', authenticationToken, async (request, response) => {
+app.get('/states/:stateId/', authenticateToken, async (request, response) => {
   const {stateId} = request.params
   const getStateQuery = `
     SELECT 
@@ -132,7 +153,7 @@ app.get('/states/:stateId/', authenticationToken, async (request, response) => {
 })
 
 //API 4
-app.post('/districts/', authenticationToken, async (request, response) => {
+app.post('/districts/', authenticateToken, async (request, response) => {
   const {stateId, districtName, cases, cured, active, deaths} = request.body
   const postDistrictQuery = `
   INSERT INTO
@@ -146,7 +167,7 @@ app.post('/districts/', authenticationToken, async (request, response) => {
 //API 5
 app.get(
   '/districts/:districtId/',
-  authenticationToken,
+  authenticateToken,
   async (request, response) => {
     const {districtId} = request.params
     const getDistrictsQuery = `
@@ -164,7 +185,7 @@ app.get(
 //API 6
 app.delete(
   '/districts/:districtId/',
-  authenticationToken,
+  authenticateToken,
   async (request, response) => {
     const {districtId} = request.params
     const deleteDistrictQuery = `
@@ -181,7 +202,7 @@ app.delete(
 //API 7
 app.put(
   '/districts/:districtId/',
-  authenticationToken,
+  authenticateToken,
   async (request, response) => {
     const {districtId} = request.params
     const {districtName, stateId, cases, cured, active, deaths} = request.body
@@ -207,7 +228,7 @@ app.put(
 //API 8
 app.get(
   '/states/:stateId/stats/',
-  authenticationToken,
+  authenticateToken,
   async (request, response) => {
     const {stateId} = request.params
     const getStateStatsQuery = `
